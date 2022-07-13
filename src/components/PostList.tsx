@@ -2,64 +2,72 @@ import React, { useRef, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router';
 import PostCard from './PostCard';
+import {IMovie} from '../types/Movie';
 
 interface PostListProps {
-  movieList: any[]; // movieList 연결 필요
-  page?: number | undefined;
-  setPage?: any;
+  movieList: IMovie[] | []; // movieList 연결 필요
+  handlePage?: () => void;
+  setReload?: any
 }
 
-const PostList: React.FC<PostListProps> = ({ movieList, page, setPage}) => {
-  console.log(page)
+const PostList: React.FC<PostListProps> = ({
+  movieList,
+  handlePage,
+  setReload,
+}) => {
   const navigate = useNavigate();
   const target = useRef<HTMLDivElement>(null);
 
   const handleClick = (id: string): void => navigate(`/detail/${id}`);
-  
-    if(page !== undefined) {
-        const options: any = {
-          root: null,
-          rootMargin: '0px',
-          threshold: 0.5,
-        };
-        const callback = (entries: any) => {
-          if(entries[0].isIntersecting === true) {
-           setTimeout(() => setPage(page+1),300)
-          }
-        };
-        const observer: any = new IntersectionObserver(callback, options);
 
-        if (target.current) {
-          observer.observe(target.current);
-        } 
-      }    
-    
+  // if (page !== undefined) {
+  const options: object = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.5,
+  };
+  const callback = (entries: IntersectionObserverEntry[]) => {
+   // if (entries[0].isIntersecting === true) {
+      return setReload(entries[0].isIntersecting);
+     // return;
+     /*  if (!handlePage) return;
+      setTimeout(() => handlePage(), 100);
+      return; */
+      // observer.unobserve(target.current)
+      //  setTimeout(() => setReload(true), 500)
+      //setReload(entries[0].isIntersecting);
+    //}
+  };
+  const observer: any = new IntersectionObserver(callback, options);
+
+  if (target.current) {
+    observer.observe(target.current);
+  }
 
   return (
     <>
-    <PostListContainer>
-      {movieList.length > 0 ? (
-        <Grid>
-          {movieList.map((movie, index) => (
-            <PostCard
-              key={index}
-              onClick={() => handleClick(movie.id)}
-              data={{
-                id: movie.id,
-                title: movie.title,
-                summary: movie.summary,
-                medium_cover_image: movie.medium_cover_image,
-                like: movie.like,
-              }}
-            />
-            ))
-            }
-        </Grid>
-      ) : (
-        <NoMovieList>검색 결과가 없습니다.</NoMovieList>
+      <PostListContainer>
+        {movieList.length > 0 ? (
+          <Grid>
+            {movieList.map((movie: any, index: number) => (
+              <PostCard
+                key={index}
+                /*  onClick={() => handleClick(movie.id)} */
+                data={{
+                  id: movie.id,
+                  title: movie.title,
+                  summary: movie.summary,
+                  medium_cover_image: movie.medium_cover_image,
+                  like: movie.like,
+                }}
+              />
+            ))}
+          </Grid>
+        ) : (
+          <NoMovieList>검색 결과가 없습니다.</NoMovieList>
         )}
-    </PostListContainer>
-        <Div ref={target}></Div>
+      </PostListContainer>
+      <Div ref={target}></Div>
     </>
   );
 };
@@ -89,5 +97,6 @@ const NoMovieList = styled.div``;
 const Div = styled.div`
   width: 100px;
   height: 200px;
+  background-color: red;
   
 `
